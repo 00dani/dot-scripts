@@ -1,0 +1,44 @@
+#!/usr/bin/env zsh
+list_srcs() {
+	local src
+	for src in $quotesrc_dir/get-*-quotes; do
+		src=${src:t}
+		src=${src#get-}
+		src=${src%-quotes}
+		print $src
+	done
+}
+save_from_src() {
+	mkdir -p ${dest:h}
+	rm $dest
+
+	for i in {1..5}
+	do
+		$src >> $dest
+		wc -l  $dest
+	done
+	strfile $dest
+}
+
+quotesrc_dir=${XDG_DATA_HOME:=~/.local/share}/sav-quotes
+dest=${XDG_CACHE_HOME:=~/.cache}/sav-quotes/quotes
+src_spec=${1:-bash}
+
+if [[ $src_spec = --completion ]]; then
+	list_srcs
+	exit 0
+fi
+
+src=$quotesrc_dir/get-${src_spec}-quotes
+if [[ -x $src ]]; then
+	if ! $src &>/dev/null; then 
+		print Could not connect to quotesrc $src_spec >&2
+		exit 1
+	fi
+	save_from_src $src
+else
+	echo "Invalid quotesrc specified: $src_spec"
+	echo "Valid quotesrcs are:"
+	list_srcs
+	exit 1
+fi

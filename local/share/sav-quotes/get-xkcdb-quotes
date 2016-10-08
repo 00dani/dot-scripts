@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+curl http://www.xkcdb.com/\?random1 | hxnormalize -i 0 -l 99999999999 -x | hxremove br | hxselect -cs '\n%\n' 'span.quote' | hxunent
+exit ${PIPESTATUS[0]}

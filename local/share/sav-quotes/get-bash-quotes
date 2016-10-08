@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+links -dump http://bash.org/\?random1 | sed -f "$dir/format-bash-quotes.sed"
+exit ${PIPESTATUS[0]}

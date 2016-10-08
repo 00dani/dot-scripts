@@ -1,0 +1,6 @@
+#compdef sav-quotes
+
+_sav-quotes() {
+	local sources="$(sav-quotes --completion)"
+	_arguments "*: :($sources)"
+}
