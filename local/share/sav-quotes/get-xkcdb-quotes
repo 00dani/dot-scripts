@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+sum() {
+	declare -i acc
+	for i; do acc+=i; done
+	echo $acc
+}
 
-curl http://www.xkcdb.com/\?random1 | hxnormalize -i 0 -l 99999999999 -x | hxremove br | hxselect -cs '\n%\n' 'span.quote' | hxunent
-exit ${PIPESTATUS[0]}
+curl -s 'http://www.xkcdb.com/?random1' |
+	hxnormalize -i 0 -l 99999999999 -x | hxselect -cs '<br>\n%<br>\n' 'span.quote' |
+	html2text -b 0 | hxunent | sed '$d; s/ *$//' | sed '$d'
+exit $(sum ${PIPESTATUS[*]})

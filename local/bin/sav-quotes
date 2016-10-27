@@ -10,12 +10,13 @@ list_srcs() {
 }
 save_from_src() {
 	mkdir -p ${dest:h}
-	rm $dest
+	rm -f $dest
 
 	for i in {1..5}
 	do
 		$src >> $dest
-		wc -l  $dest
+		(( i < 5 )) && echo % >> $dest
+		wc -l $dest
 	done
 	strfile $dest
 }
