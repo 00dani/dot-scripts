@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+try:
+  from yaml import CSafeLoader as SafeLoader
+except ImportError:
+  from yaml import SafeLoader
+import sys, json
+
+files = sys.argv[1:] or ('-',)
+
+stdinUsed = False
+for f in files:
+  if f == '-':
+    if stdinUsed: continue
+    stdinUsed = True
+  with open(f) if f != '-' else sys.stdin as stream:
+    l = SafeLoader(stream)
+    while l.check_data(): print(json.dumps(l.get_data()))

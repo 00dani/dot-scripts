@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+from yaml import dump
+try:
+  from yaml import CDumper as Dumper
+except ImportError:
+  from yaml import Dumper
+import json, re, sys
+
+def dict_representer(dumper, d):
+  node = dumper.represent_dict(d)
+  # Don't use YAML flow style for large dicts, because the flow style output
+  # only really looks good with a very small number of keys.
+  if node.flow_style and len(d) > 5:
+    node.flow_style = False
+  return node
+Dumper.add_representer(dict, dict_representer)
+
+def cat(files):
+  usedStdin = False
+  for f in files:
+    if f == '-':
+      if usedStdin: continue
+      usedStdin = True
+    with open(f) if f != '-' else sys.stdin as s:
+      for line in s: yield line
+
+# http://stackoverflow.com/a/7795029/1208816
+braces = '{}[]'
+whitespace_esc = ' \t'
+braces_esc = '\\' + '\\'.join(braces)
+braces_pat = '[' + braces_esc + ']'
+no_braces_pat = '[^' + braces_esc + ']*'
+until_braces_pat = re.compile(no_braces_pat + braces_pat)
+balance_map = dict(zip(braces, [1, -1, 1, -1]))
+
+def streamingfinditer(pat, stream):
+  for s in stream:
+    while True:
+      m = pat.search(s)
+      if not m:
+        yield (0,s)
+        break
+      yield (1, m.group())
+      s = pat.split(s, 1)[1]
+
+def simpleorcompoundobjects(stream):
+  obj = ""
+  unbalanced = 0
+  for (c, m) in streamingfinditer(until_braces_pat, stream):
+    if (c == 0): # remainder of line returned, nothing interesting
+      if (unbalanced == 0):
+        yield (0, m)
+      else:
+        obj += m
+    if (c == 1): # match returned
+      if (unbalanced == 0):
+        yield (0, m[:-1])
+        obj += m[-1]
+      else:
+        obj += m
+      unbalanced += balance_map[m[-1]]
+      if (unbalanced == 0):
+        yield (1, obj)
+        obj = "" 
+
+def streamingiterload(stream):
+  for c,o in simpleorcompoundobjects(stream):
+    for x in iterload(o):
+      yield x 
+
+# http://stackoverflow.com/a/6886743/1208816
+def iterload(string_or_fp, cls=json.JSONDecoder, **kwargs):
+  try:
+    string = string_or_fp.read()
+  except AttributeError:
+    string = str(string_or_fp)
+
+  decoder = cls(**kwargs)
+  idx = json.decoder.WHITESPACE.match(string, 0).end()
+  while idx < len(string):
+    obj, end = decoder.raw_decode(string, idx)
+    yield obj
+    idx = json.decoder.WHITESPACE.match(string, end).end()
+
+files = sys.argv[1:] or ('-',)
+for obj in streamingiterload(cat(files)):
+  print(dump(obj, Dumper=Dumper, explicit_start=True), end='', flush=True)
