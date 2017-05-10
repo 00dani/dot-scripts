@@ -1,0 +1,19 @@
+#!/bin/zsh
+zparseopts -D -A opts -- t: e:
+autoload pass-unpack
+typeset -A creds
+pass-unpack Productivity/Simplepush creds
+
+enc_key=$(echo -n $creds[password]$creds[salt] | sha1sum | awk '{print toupper($1)}' | cut -c1-32)
+iv=$(openssl enc -aes-128-cbc -k dummy -P -md sha1 | grep iv | cut -d = -f 2)
+
+encrypt() {
+	openssl aes-128-cbc -base64 -K $enc_key -iv $iv | awk '{print}' ORS='' | tr + - | tr / _
+}
+
+msg="$(cat -- "$@" | encrypt)"
+extras=()
+[[ -n $opts[-t] ]] && extras+=(title=$(encrypt <<<$opts[-t]))
+[[ -n $opts[-e] ]] && extras+=(event=$opts[-e])
+
+http -f --ignore-stdin https://api.simplepush.io/send key=$creds[key] msg=$msg iv=$iv encrypted=true $extras
