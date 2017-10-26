@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import mf2py
+import sys
+
+args = sys.argv[1:]
+if not args:
+    args.append('-')
+
+
+def parse(**kwargs):
+    return mf2py.Parser(html_parser='html5lib', **kwargs).to_json()
+
+
+for arg in args:
+    if arg.startswith('http'):
+        doc = parse(url=arg)
+    elif arg == '-':
+        doc = parse(doc=sys.stdin)
+    else:
+        with open(arg, 'r') as f:
+            doc = parse(doc=f)
+    print(doc)
