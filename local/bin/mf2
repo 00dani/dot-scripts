@@ -12,6 +12,8 @@ def parse(**kwargs):
 
 
 for arg in args:
+    if arg.startswith('//'):
+        arg = 'https:' + arg
     if arg.startswith('http'):
         doc = parse(url=arg)
     elif arg == '-':
