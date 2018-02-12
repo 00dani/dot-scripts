@@ -1,2 +1,2 @@
 #!/bin/zsh
-magick $f -alpha set -fill 'rgba(0,0,0,0)' -draw 'color 0,0 point' $f:r.png
+magick $1 -alpha set -fill 'rgba(0,0,0,0)' -draw 'color 0,0 point' $1:r.png
