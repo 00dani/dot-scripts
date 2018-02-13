@@ -1,2 +1,6 @@
 #!/bin/zsh
-magick $1 -alpha set -fill 'rgba(0,0,0,0)' -draw 'color 0,0 point' $1:r.png
+for src in $argv; do
+	dest=$src:r.png
+	[[ $src = *.png ]] && dest=${src:r}_twitter.png
+	magick $src -alpha set -fill 'rgba(0,0,0,0)' -draw 'color 0,0 point' $dest || exit $?
+done
