@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+if (is_readable('./vendor/autoload.php')) require './vendor/autoload.php';
+
+function to_array($obj) {
+	if (is_array($obj)) return array_map('to_array', $obj);
+	if (!is_object($obj)) return $obj;
+	$cls = new \ReflectionClass($obj);
+	$fields = ['__class__' => $cls->name];
+	foreach ($cls->getProperties() as $prop) {
+		$prop->setAccessible(true);
+		$fields[$prop->getName()] = to_array($prop->getValue($obj));
+	}
+	return $fields;
+}
+
+$args = array_slice($argv, 1);
+if (empty($args)) $args[] = '-';
+foreach ($args as $arg) {
+	if ($arg === '-') $arg = 'php://stdin';
+	echo json_encode(to_array(unserialize(file_get_contents($arg)))) . PHP_EOL;
+}
