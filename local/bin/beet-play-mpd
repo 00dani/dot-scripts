@@ -1,0 +1,5 @@
+#!/bin/zsh
+mv $1 $XDG_DATA_HOME/mpd/playlists/beet-play-mpd.m3u &&
+mpc clear >/dev/null &&
+mpc load beet-play-mpd >/dev/null &&
+mpc play
