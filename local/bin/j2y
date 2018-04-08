@@ -11,7 +11,7 @@ def dict_representer(dumper, d):
   node = dumper.represent_dict(d)
   # Don't use YAML flow style for large dicts, because the flow style output
   # only really looks good with a very small number of keys.
-  if node.flow_style and len(d) > 5:
+  if len(d) > 5 or sum(len(v) for v in d.values()) > 30:
     node.flow_style = False
   return node
 Dumper.add_representer(dict, dict_representer)
