@@ -1,0 +1,24 @@
+#!/bin/zsh
+
+upload() {
+  http --check-status --ignore-stdin \
+    POST https://up.00dani.me/ \
+    Authorization:$UP_TOKEN \
+    Content-Type:$(file --mime-type -b $1) \
+    X-Filename:$1 \
+    @$1
+}
+
+if (( $# == 0 )); then
+  upload =(cat)
+  exit $?
+fi
+
+for f; do
+  if [[ ! -r $f ]]; then
+    print "up: $f is not a readable file" >&2
+    exit 1
+  fi
+  upload $f || exit $?
+  print
+done
