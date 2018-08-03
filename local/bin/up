@@ -1,12 +1,10 @@
 #!/bin/zsh
 
 upload() {
-  http --check-status --ignore-stdin \
+  http --check-status --ignore-stdin --form \
     POST https://up.00dani.me/ \
     Authorization:$UP_TOKEN \
-    Content-Type:$(file --mime-type -b $1) \
-    X-Filename:$1 \
-    @$1
+    file@$1
 }
 
 if (( $# == 0 )); then
