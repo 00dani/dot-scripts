@@ -1,0 +1,32 @@
+#!/bin/zsh
+print >&2 "Andromeda Start Shell Script
+
+This requires projekt.andromeda to be installed on the device.
+Make sure the device is connected and ADB option enabled.
+Please only have one device connected at a time to use this!"
+
+shell() {
+	adb shell "$@" || exit $?
+}
+
+# Let's first grab the location where Andromeda is installed
+pkg="$(shell pm path projekt.andromeda)"
+pkg=${pkg#package:}
+
+# Quit Substratum if it's running.
+shell am force-stop projekt.substratum
+
+# If Andromeda is already running, we have to kill it rather than just force-stop it. :(
+pid="$(shell pidof andromeda)"
+if [[ -n $pid ]]; then
+	print "Existing Andromeda process found with PID $pid, killing..." >&2
+	# Additionally, Andromeda only responds to SIGKILL, not SIGTERM, which is absolutely disgusting.
+	shell kill -9 $pid
+fi
+
+print "Launching Andromeda..." >&2
+shell <<EOF
+appops set projekt.andromeda RUN_IN_BACKGROUND allow
+appops set projekt.substratum RUN_IN_BACKGROUND allow
+CLASSPATH=$pkg app_process /system/bin --nice-name=andromeda projekt.andromeda.Andromeda >/dev/null 2>&1 &
+EOF
