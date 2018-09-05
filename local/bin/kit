@@ -1,0 +1,13 @@
+#!/bin/zsh
+: ${XDG_CACHE_HOME:=~/.cache}
+MAC_KITTY=/Applications/kitty.app/Contents/MacOS
+
+if (( $+commands[kitty] == 0 )); then
+	if [[ -x $MAC_KITTY/kitty ]]; then
+		path=($MAC_KITTY $path)
+	else
+		print "Sorry, kitty must be installed to use this script! https://sw.kovidgoyal.net/kitty" >2
+		exit 1
+	fi
+fi
+exec kitty @ --to unix:$XDG_CACHE_HOME/kitty/kitty.sock "$@"
