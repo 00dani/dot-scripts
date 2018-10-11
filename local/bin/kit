@@ -6,7 +6,7 @@ if (( $+commands[kitty] == 0 )); then
 	if [[ -x $MAC_KITTY/kitty ]]; then
 		path=($MAC_KITTY $path)
 	else
-		print "Sorry, kitty must be installed to use this script! https://sw.kovidgoyal.net/kitty" >2
+		print "Sorry, kitty must be installed to use this script! https://sw.kovidgoyal.net/kitty" >&2
 		exit 1
 	fi
 fi
