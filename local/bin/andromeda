@@ -10,8 +10,10 @@ shell() {
 }
 
 # Let's first grab the location where Andromeda is installed
-pkg="$(shell pm path projekt.andromeda)"
-pkg=${pkg#package:}
+pkg=( "$(shell pm path projekt.andromeda)" )
+pkg=( ${(f)pkg} )
+pkg=( ${pkg#package:} )
+# These steps could all be done as a one-liner but this way is easier to read.
 
 # Quit Substratum if it's running.
 shell am force-stop projekt.substratum
@@ -28,5 +30,5 @@ print "Launching Andromeda..." >&2
 shell <<EOF
 appops set projekt.andromeda RUN_IN_BACKGROUND allow
 appops set projekt.substratum RUN_IN_BACKGROUND allow
-CLASSPATH=$pkg app_process /system/bin --nice-name=andromeda projekt.andromeda.Andromeda >/dev/null 2>&1 &
+CLASSPATH=${(j.:.)pkg} app_process /system/bin --nice-name=andromeda projekt.andromeda.Andromeda >/dev/null 2>&1 &
 EOF
