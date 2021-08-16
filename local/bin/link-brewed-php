@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+cd ~/bin || exit $?
+for bin in /usr/local/opt/php@*/bin/php; do
+	name=php${${bin##*@}%%/*}
+	echo "Linking ~/bin/$name -> $bin" >&2
+	ln -fs $bin $name
+done
