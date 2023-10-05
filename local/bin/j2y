@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 from yaml import dump
+
 try:
   from yaml import CDumper as Dumper
 except ImportError:
   from yaml import Dumper
+
+from collections.abc import Sized
 import json, re, sys
 
 def dict_representer(dumper, d):
   node = dumper.represent_dict(d)
   # Don't use YAML flow style for large dicts, because the flow style output
   # only really looks good with a very small number of keys.
-  if len(d) > 5 or sum(len(v) for v in d.values()) > 30:
+  if len(d) > 5 or sum(len(v) for v in d.values() if isinstance(v, Sized)) > 30:
     node.flow_style = False
   return node
 Dumper.add_representer(dict, dict_representer)
@@ -62,12 +65,12 @@ def simpleorcompoundobjects(stream):
       unbalanced += balance_map[m[-1]]
       if (unbalanced == 0):
         yield (1, obj)
-        obj = "" 
+        obj = ""
 
 def streamingiterload(stream):
   for c,o in simpleorcompoundobjects(stream):
     for x in iterload(o):
-      yield x 
+      yield x
 
 # http://stackoverflow.com/a/6886743/1208816
 def iterload(string_or_fp, cls=json.JSONDecoder, **kwargs):
