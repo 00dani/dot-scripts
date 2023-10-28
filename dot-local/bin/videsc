@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+zmodload zsh/mapfile
+PREVIEW_TENTHS=7
+IMG=$1
+
+DESC_FILE=$XDG_RUNTIME_DIR/videsc-${IMG:t:r}.txt
+WINDOW_ID=0
+
+if [[ -z $XDG_RUNTIME_DIR ]]; then
+	echo "videsc requires XDG_RUNTIME_DIR to be set." >&2
+	exit 2
+fi
+
+if [[ -f $DESC_FILE ]]; then
+	echo That image may already be in an active videsc session. >&2
+	echo "If you're sure it isn't, remove $DESC_FILE and try again." >&2
+	exit 1
+fi
+
+videsc() {
+	exiftool -b -Description $IMG > $DESC_FILE || return $?
+	cp -p $DESC_FILE $DESC_FILE.stamp || return $?
+
+	local IMG_PREVIEW_HEIGHT=$((LINES * PREVIEW_TENTHS / 10))
+	kitty @ goto-layout fat:bias=$((10 * PREVIEW_TENTHS)) || return $?
+	WINDOW_ID=$(kitty @ launch --cwd current --location before --keep-focus kitten icat --place ${COLUMNS}x${IMG_PREVIEW_HEIGHT}@0x0 --hold $IMG || return $?)
+
+	${EDITOR:-vim} $DESC_FILE || return $?
+
+	if [[ $DESC_FILE -nt $DESC_FILE.stamp ]]; then
+		pbcopy < $DESC_FILE
+		exiftool -P -Description="$mapfile[$DESC_FILE]" $IMG
+	else
+		echo 'no changes detected, not writing updated description.' >&2
+	fi
+}
+
+{
+	videsc
+} always {
+	(( $WINDOW_ID )) && kitty @ close-window -m id:$WINDOW_ID
+	rm -f $DESC_FILE $DESC_FILE.stamp
+}
