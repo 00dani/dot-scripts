@@ -1,5 +1,4 @@
 #!/usr/bin/env zsh
-zmodload zsh/mapfile
 PREVIEW_TENTHS=7
 IMG=$1
 
@@ -27,9 +26,9 @@ videsc() {
 
 	${EDITOR:-vim} $DESC_FILE || return $?
 
+	pbcopy < $DESC_FILE
 	if [[ $DESC_FILE -nt $DESC_FILE.stamp ]]; then
-		pbcopy < $DESC_FILE
-		exiftool -P -Description="$mapfile[$DESC_FILE]" $IMG
+		exiftool -P "-Description<=$DESC_FILE" $IMG
 	else
 		echo 'no changes detected, not writing updated description.' >&2
 	fi
