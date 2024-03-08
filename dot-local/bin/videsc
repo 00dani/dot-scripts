@@ -28,7 +28,7 @@ videsc() {
 
 	pbcopy < $DESC_FILE
 	if [[ $DESC_FILE -nt $DESC_FILE.stamp ]]; then
-		exiftool -P "-Description<=$DESC_FILE" $IMG
+		exiftool -P -overwrite_original_in_place "-Description<=$DESC_FILE" $IMG
 	else
 		echo 'no changes detected, not writing updated description.' >&2
 	fi
