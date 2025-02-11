@@ -1,7 +1,24 @@
 #!/usr/bin/env zsh
+make-xdebug-wrapper() {
+	cat <<EOF >$1-xdebug || return $?
+	#!/usr/bin/env zsh
+	defaults=(
+		zend_extension=xdebug.so
+		xdebug.mode=debug
+		xdebug.client_host=127.0.0.1
+		xdebug.start_with_request=true
+	)
+	exec $1 -d\${^defaults} "\$@"
+EOF
+	chmod u+x $1-xdebug
+}
+
 cd ~/bin || exit $?
 for bin in /usr/local/opt/php@*/bin/php; do
 	name=php${${bin##*@}%%/*}
 	echo "Linking ~/bin/$name -> $bin" >&2
-	ln -fs $bin $name
+	ln -fs $bin $name || exit $?
+
+	echo "Generating XDebug wrapper ~/bin/$name-xdebug" >&2
+	make-xdebug-wrapper $name || exit $?
 done
